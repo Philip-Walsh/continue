@@ -91,10 +91,10 @@ type OllamaBaseResponse = {
   model: string;
   created_at: string;
 } & (
-  | {
+    | {
       done: false;
     }
-  | {
+    | {
       done: true;
       done_reason: string;
       total_duration: number; // Time spent generating the response in nanoseconds
@@ -105,7 +105,7 @@ type OllamaBaseResponse = {
       eval_duration: number; // Time spent generating the response in nanoseconds
       context: number[]; // An encoding of the conversation used in this response; can be sent in the next request to keep conversational memory
     }
-);
+  );
 
 type OllamaErrorResponse = {
   error: string;
@@ -114,14 +114,14 @@ type OllamaErrorResponse = {
 type OllamaRawResponse =
   | OllamaErrorResponse
   | (OllamaBaseResponse & {
-      response: string; // the generated response
-    });
+    response: string; // the generated response
+  });
 
 type OllamaChatResponse =
   | OllamaErrorResponse
   | (OllamaBaseResponse & {
-      message: OllamaChatMessage;
-    });
+    message: OllamaChatMessage;
+  });
 
 interface OllamaTool {
   type: "function";
@@ -153,6 +153,7 @@ class Ollama extends BaseLLM implements ModelInstaller {
     }
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      ...this.requestOptions?.headers,
     };
 
     if (this.apiKey) {
@@ -343,6 +344,7 @@ class Ollama extends BaseLLM implements ModelInstaller {
   ): AsyncGenerator<string> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      ...this.requestOptions?.headers,
     };
 
     if (this.apiKey) {
@@ -408,6 +410,7 @@ class Ollama extends BaseLLM implements ModelInstaller {
     }
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      ...this.requestOptions?.headers,
     };
 
     if (this.apiKey) {
@@ -498,6 +501,7 @@ class Ollama extends BaseLLM implements ModelInstaller {
   ): AsyncGenerator<string> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      ...this.requestOptions?.headers,
     };
 
     if (this.apiKey) {
@@ -539,6 +543,7 @@ class Ollama extends BaseLLM implements ModelInstaller {
   async listModels(): Promise<string[]> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      ...this.requestOptions?.headers,
     };
 
     if (this.apiKey) {
@@ -565,6 +570,7 @@ class Ollama extends BaseLLM implements ModelInstaller {
   protected async _embed(chunks: string[]): Promise<number[][]> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      ...this.requestOptions?.headers,
     };
 
     if (this.apiKey) {
@@ -613,12 +619,18 @@ class Ollama extends BaseLLM implements ModelInstaller {
     }
 
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...this.requestOptions?.headers,
+      };
+
+      if (this.apiKey) {
+        headers.Authorization = `Bearer ${this.apiKey}`;
+      }
+
       const response = await fetch(this.getEndpoint("api/pull"), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
+        headers: headers,
         body: JSON.stringify({ name: modelName }),
         signal,
       });
